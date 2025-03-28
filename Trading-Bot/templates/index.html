@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MT5 Multi-Instance Trading</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding-top: 2rem;
+        }
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+        }
+        .card-header {
+            background-color: #3a86ff;
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+            padding: 1rem;
+        }
+        .btn-primary {
+            background-color: #3a86ff;
+            border-color: #3a86ff;
+        }
+        .btn-danger {
+            background-color: #ff595e;
+            border-color: #ff595e;
+        }
+        .status-indicator {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+        .status-running {
+            background-color: #4CAF50;
+        }
+        .status-stopped {
+            background-color: #f44336;
+        }
+        .symbol-tag {
+            display: inline-block;
+            background-color: #007bff;
+            color: white;
+            padding: 5px 10px;
+            margin: 3px;
+            border-radius: 3px;
+        }
+        .symbol-delete {
+            margin-left: 5px;
+            cursor: pointer;
+        }
+        .common-symbol {
+            display: inline-block;
+            background-color: #f0f0f0;
+            padding: 3px 8px;
+            margin: 2px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .common-symbol:hover {
+            background-color: #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mb-4">MT5 Multi-Instance Trading</h1>
+        
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">MT5 Instances</h4>
+                        <button type="button" id="add-instance-btn" class="btn btn-light">
+                            <i class="fas fa-plus"></i> Add MT5 Instance
+                                    </button>
+                                </div>
+                                                    <div class="card-body">
+                        <div id="mt5-instances-container">
+                            <!-- MT5 instances will be added here dynamically -->
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+        <div class="row mt-4">
+            <div class="col-12 text-center">
+                <div id="status-message" class="alert alert-info" style="display: none;"></div>
+                                        </div>
+                                        </div>
+                                        
+                                        <!-- MT5 Instance Template (hidden, used for cloning) -->
+                                        <div id="mt5-instance-template" style="display: none;">
+                                            <div class="card mb-4 mt5-instance">
+                                                <div class="card-header d-flex justify-content-between align-items-center bg-light">
+                                                    <h5 class="mb-0">MT5 Instance <span class="instance-number">1</span></h5>
+                                                    <div>
+                                                        <button type="button" class="btn btn-sm btn-danger remove-instance-btn">
+                                                            <i class="fas fa-trash"></i> Remove
+                                </button>
+                            </div>
+                                                </div>
+                                                <div class="card-body">
+                                                        <!-- MT5 Connection Settings -->
+                    <div class="mb-4">
+                        <h6 class="border-bottom pb-2 mb-3">MT5 Connection Settings</h6>
+                                                            <div class="row">
+                            <div class="col-md-4 mb-3">
+                                                                    <label class="form-label">Login</label>
+                                                                    <input type="number" class="form-control mt5-login" placeholder="MT5 Account Number">
+                                                                </div>
+                            <div class="col-md-4 mb-3">
+                                                                    <label class="form-label">Password</label>
+                                                                    <input type="password" class="form-control mt5-password" placeholder="MT5 Password">
+                                                                </div>
+                            <div class="col-md-4 mb-3">
+                                                                    <label class="form-label">Server</label>
+                                <input type="text" class="form-control mt5-server" value="MetaQuotes-Demo" placeholder="e.g. MetaQuotes-Demo">
+                                                                </div>
+                    </div>
+                </div>
+                
+                    <!-- Symbol Selection -->
+                    <div class="mb-4">
+                        <h6 class="border-bottom pb-2 mb-3">Symbol Selection</h6>
+                        <div class="form-check form-switch mb-3">
+                                                                    <input class="form-check-input mt5-multi-symbol-enabled" type="checkbox" id="multi-symbol-toggle-${id}">
+                                                                    <label class="form-check-label" for="multi-symbol-toggle-${id}">Enable Multi-Symbol Trading</label>
+                                                                </div>
+                                                                
+                                                                <!-- Single Symbol Mode -->
+                        <div class="mt5-single-symbol-container mb-3">
+                                                                            <label class="form-label">Symbol</label>
+                                                                            <input type="text" class="form-control mt5-symbol" value="EURUSD">
+                                                                </div>
+                                                                
+                                                                <!-- Multi Symbol Mode -->
+                                                                <div class="mt5-multi-symbol-container" style="display: none;">
+                            <div class="mt5-selected-symbols mb-3">
+                                                                        <!-- Selected symbols will be shown here -->
+                                                                    </div>
+                                                                    <div class="row mb-2">
+                                                                        <div class="col-md-10">
+                                                                            <input type="text" class="form-control mt5-symbol-input" placeholder="Enter a symbol">
+                                                                        </div>
+                                                                        <div class="col-md-2">
+                                                                            <button type="button" class="btn btn-primary w-100 mt5-add-symbol-btn">Add</button>
+                                                                        </div>
+                                                                    </div>
+                            <div class="mt5-common-symbols mb-3">
+                                                                        <span class="common-symbol" data-symbol="EURUSD">EURUSD</span>
+                                                                        <span class="common-symbol" data-symbol="GBPUSD">GBPUSD</span>
+                                                                        <span class="common-symbol" data-symbol="USDJPY">USDJPY</span>
+                                                                        <span class="common-symbol" data-symbol="XAUUSD">XAUUSD</span>
+                                                                        <span class="common-symbol" data-symbol="AUDUSD">AUDUSD</span>
+                                                                        <span class="common-symbol" data-symbol="NZDUSD">NZDUSD</span>
+                                                                        <span class="common-symbol" data-symbol="AUDCAD">AUDCAD</span>
+                                                                        <span class="common-symbol" data-symbol="NZDCAD">NZDCAD</span>
+                                                                        <span class="common-symbol" data-symbol="EURCAD">EURCAD</span>
+                                                                        <span class="common-symbol" data-symbol="USDCAD">USDCAD</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            
+                    <!-- Trading Settings -->
+                    <div class="mb-4">
+                        <h6 class="border-bottom pb-2 mb-3">Trading Settings</h6>
+                                                            <div class="row">
+                            <div class="col-md-6 mb-3">
+                                                                    <label class="form-label">Timeframe</label>
+                                                                    <select class="form-select mt5-timeframe">
+                                                                        <option value="TIMEFRAME_M1">1 Minute (M1)</option>
+                                                                        <option value="TIMEFRAME_M5">5 Minutes (M5)</option>
+                                                                        <option value="TIMEFRAME_M15" selected>15 Minutes (M15)</option>
+                                                                        <option value="TIMEFRAME_M30">30 Minutes (M30)</option>
+                                                                        <option value="TIMEFRAME_H1">1 Hour (H1)</option>
+                                                                        <option value="TIMEFRAME_H4">4 Hours (H4)</option>
+                                                                        <option value="TIMEFRAME_D1">Daily (D1)</option>
+                                                                    </select>
+                                                                </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Max Drawdown</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control mt5-max-drawdown" value="3.5" min="0.1" step="0.1">
+                                    <span class="input-group-text">%</span>
+                                </div>
+                                <small class="form-text text-muted">Percentage of account size</small>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                                                    <label class="form-label">Trade Direction</label>
+                                                                    <select class="form-select mt5-trade-direction">
+                                                                        <option value="BOTH" selected>Both Long & Short</option>
+                                                                        <option value="LONG">Long Only</option>
+                                                                        <option value="SHORT">Short Only</option>
+                                                                    </select>
+                                                                </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check form-switch mt-4">
+                                    <input class="form-check-input mt5-weekend-closing" type="checkbox" id="weekend-closing-${id}" checked>
+                                    <label class="form-check-label" for="weekend-closing-${id}">Weekend Closing (Sat 12mn - Mon 8am PST)</label>
+                                    <div class="form-text text-muted">Closes profitable trades before weekend. Trades in drawdown remain open until TP/SL.</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- High Impact News Settings -->
+                        <div class="form-group mb-3">
+                            <div class="form-check form-switch">
+                                <input type="checkbox" class="form-check-input hin-toggle" id="hin-toggle-${id}">
+                                <label class="form-check-label" for="hin-toggle-${id}">High Impact News (HIN) Play</label>
+                            </div>
+                        </div>
+                        
+                        <div class="hin-settings" style="display: none;">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Duration (minutes)</label>
+                                    <input type="number" class="form-control news-duration" id="news-duration-${id}" value="5" min="1" max="60">
+                                    <small class="form-text text-muted">Minutes before HIN to open positions</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Buy Stop / Sell Stop (points)</label>
+                                    <input type="number" class="form-control news-stop-points" id="news-stop-points-${id}" value="200" min="50" max="500">
+                                    <small class="form-text text-muted">Points above/below current price</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Prop Firm Mode Settings -->
+                        <div class="form-group mb-3">
+                            <div class="form-check form-switch">
+                                <input type="checkbox" class="form-check-input pfm-toggle" id="pfm-toggle-${id}">
+                                <label class="form-check-label" for="pfm-toggle-${id}">Prop Firm Mode</label>
+                            </div>
+                        </div>
+                        
+                        <div class="pfm-settings" style="display: none;">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Trading Hours (Military Standard Time)</label>
+                                    <div class="input-group">
+                                        <input type="time" class="form-control trading-start-time" id="trading-start-time-${id}" value="08:00">
+                                        <span class="input-group-text">to</span>
+                                        <input type="time" class="form-control trading-end-time" id="trading-end-time-${id}" value="17:00">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Randomness Level</label>
+                                    <select class="form-select randomness-level" id="randomness-level-${id}">
+                                        <option value="low">Low (10% chance to skip)</option>
+                                        <option value="medium" selected>Medium (30% chance to skip)</option>
+                                        <option value="high">High (50% chance to skip)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Lot Size</label>
+                                <input type="number" class="form-control mt5-lot-size" value="0.01" min="0.01" step="0.01">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Max Stop Loss (points)</label>
+                                <input type="number" class="form-control mt5-sl" value="1000" min="10">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Max Take Profit (points)</label>
+                                <input type="number" class="form-control mt5-tp" value="1000" min="10">
+                            </div>
+                        </div>
+                        
+                        <!-- Risk Management Strategy -->
+                        <div class="form-group mb-3">
+                            <label class="form-label">Risk Management Strategy</label>
+                            <select class="form-select mt5-strategy">
+                                <option value="exit_signal_or_max_tp" selected>Exit Signal or Max TP</option>
+                                <option value="trailing_stop">Trailing Stop Loss</option>
+                                <option value="progressive">Progressive Lock in</option>
+                                <option value="drawdown">Drawdown Layering</option>
+                                <option value="hybrid_trailing_drawdown">Hybrid: Trailing + Drawdown</option>
+                                <option value="hybrid_progressive_drawdown">Hybrid: Progressive + Drawdown</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Strategy-specific settings -->
+                        <div class="strategy-specific-settings mt-3">
+                            <!-- Exit Signal or Max TP Settings -->
+                            <div class="exit-signal-settings">
+                                <div class="row">
+                                    <div class="col-md-12 mb-3">
+                                        <label class="form-label">No. of ReEntry</label>
+                                        <input type="number" class="form-control mt5-reentry-count" value="5" min="1" max="10">
+                                        <small class="form-text text-muted">Number of re-entries when pair is in drawdown</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Progressive Lock-in Settings -->
+                            <div class="progressive-settings" style="display: none;">
+                                <div class="row">
+                                    <div class="col-md-12 mb-3">
+                                        <label class="form-label">Positions Per Setup</label>
+                                        <input type="number" class="form-control mt5-positions-per-setup" value="3" min="1" max="10">
+                                        <small class="form-text text-muted">Number of positions to open and manage</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Drawdown Layering Settings -->
+                            <div class="drawdown-settings" style="display: none;">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">No. of Layers</label>
+                                        <input type="number" class="form-control mt5-max-layers" value="5" min="1" max="10">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Profit Per Position (points)</label>
+                                        <input type="number" class="form-control mt5-tp-per-position" value="200" min="10">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Trailing Stop Loss Settings -->
+                            <div class="trailing-settings" style="display: none;">
+                                <div class="row">
+                                    <div class="col-md-12 mb-3">
+                                        <label class="form-label">No. of Checkpoints</label>
+                                        <input type="number" class="form-control mt5-checkpoints" value="5" min="2" max="10">
+                                        <small class="form-text text-muted">Number of points to move stop loss</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Hybrid Progressive + Drawdown Settings -->
+                            <div class="hybrid-progressive-drawdown-settings" style="display: none;">
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">Positions Per Setup</label>
+                                        <input type="number" class="form-control mt5-hybrid-positions-per-setup" value="3" min="1" max="10">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">No. of Layers</label>
+                                        <input type="number" class="form-control mt5-hybrid-max-layers" value="5" min="1" max="10">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">Profit Per Position (points)</label>
+                                        <input type="number" class="form-control mt5-hybrid-tp-per-position" value="200" min="10">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Hybrid Trailing + Drawdown Settings -->
+                            <div class="trailing-drawdown-settings" style="display: none;">
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">No. of Checkpoints</label>
+                                        <input type="number" class="form-control mt5-trailing-checkpoints" value="5" min="2" max="10">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">No. of Layers</label>
+                                        <input type="number" class="form-control mt5-trailing-max-layers" value="5" min="1" max="10">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">Profit Per Position (points)</label>
+                                        <input type="number" class="form-control mt5-trailing-tp-per-position" value="200" min="10">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Custom Indicators -->
+                        <div class="mt-4 mb-3">
+                            <h6 class="border-bottom pb-2 mb-3">Custom Indicators</h6>
+                            <div class="row mb-3">
+                                <div class="col-md-12">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h6 class="card-title">Upload Indicator</h6>
+                                            <div class="mb-3">
+                                                <input class="form-control mt5-indicator-file" type="file" accept=".pine">
+                                                <div class="form-text">Upload a TradingView Pine Script indicator file</div>
+                                            </div>
+                                            <button type="button" class="btn btn-primary mt5-upload-indicator-btn">Upload</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h6 class="card-title">Available Indicators</h6>
+                                            <div class="mb-3">
+                                                <select class="form-select mt5-indicator-select">
+                                                    <option value="">Default strategy</option>
+                                                    <option value="HWR.pine" selected>HWR.pine</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input mt5-instance-enabled" type="checkbox" id="enable-instance-${id}" checked>
+                            <label class="form-check-label" for="enable-instance-${id}">Enable this MT5 instance</label>
+                        </div>
+                        <button type="button" class="btn btn-primary mt5-connect-btn">Connect</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap & Font Awesome -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://kit.fontawesome.com/3b0ed6da79.js" crossorigin="anonymous"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Fix any remaining templates with ${id} placeholders
+            document.querySelectorAll('[id*="${id}"]').forEach(element => {
+                const newId = element.id.replace('${id}', '1'); // Replace with 1 for first instance
+                element.id = newId;
+                
+                // Also update any labels targeting this element
+                document.querySelectorAll(`label[for="${element.id}"]`).forEach(label => {
+                    label.setAttribute('for', newId);
+                });
+            });
+            
+            // Update strategy settings for first instance
+            const initialInstance = document.querySelector('.mt5-instance');
+            if (initialInstance) {
+                const strategyDropdown = initialInstance.querySelector('.mt5-strategy');
+                if (strategyDropdown) {
+                    // Get the function from global scope
+                    if (typeof updateStrategySettings === 'function') {
+                        updateStrategySettings(initialInstance, strategyDropdown.value);
+                    }
+                }
+            }
+            
+            // Multi-MT5 Instance Management
+            const addInstanceBtn = document.getElementById('add-instance-btn');
+            const mt5InstancesContainer = document.getElementById('mt5-instances-container');
+            const mt5InstanceTemplate = document.getElementById('mt5-instance-template');
+            let instanceCounter = 0;
+            const MAX_INSTANCES = 4;
+            
+            // Initialize with one instance by default
+            const firstInstance = addMT5Instance();
+            
+            // Setup event handlers for the first instance (with a delay to ensure DOM is ready)
+            setTimeout(function() {
+                setupFirstInstanceEventHandlers(firstInstance);
+                
+                // Initialize strategy settings for the first instance
+                const strategySelect = firstInstance.querySelector('.mt5-strategy');
+                if (strategySelect) {
+                    updateStrategySettings(firstInstance, strategySelect.value);
+                }
+            }, 500);
+            
+            // Add event listener for adding instances
+            addInstanceBtn.addEventListener('click', function() {
+                if (instanceCounter < MAX_INSTANCES) {
+                    addMT5Instance();
+                } else {
+                    showStatusMessage('error', `Maximum limit of ${MAX_INSTANCES} MT5 instances reached.`);
+                }
+            });
+            
+            function setupFirstInstanceEventHandlers(instance) {
+                if (!instance) return;
+                
+                // Setup High Impact News toggle
+                const hinToggle = instance.querySelector('.hin-toggle');
+                const hinSettings = instance.querySelector('.hin-settings');
+                if (hinToggle && hinSettings) {
+                    hinToggle.addEventListener('change', function() {
+                        hinSettings.style.display = this.checked ? 'block' : 'none';
+                    });
+                }
+                
+                // Setup Prop Firm Mode toggle
+                const pfmToggle = instance.querySelector('.pfm-toggle');
+                const pfmSettings = instance.querySelector('.pfm-settings');
+                if (pfmToggle && pfmSettings) {
+                    pfmToggle.addEventListener('change', function() {
+                        pfmSettings.style.display = this.checked ? 'block' : 'none';
+                    });
+                }
+                
+                // Setup Multi-Symbol toggle
+                const multiSymbolToggle = instance.querySelector('.mt5-multi-symbol-enabled');
+                const singleSymbolContainer = instance.querySelector('.mt5-single-symbol-container');
+                const multiSymbolContainer = instance.querySelector('.mt5-multi-symbol-container');
+                if (multiSymbolToggle && singleSymbolContainer && multiSymbolContainer) {
+                    multiSymbolToggle.addEventListener('change', function() {
+                        singleSymbolContainer.style.display = this.checked ? 'none' : 'block';
+                        multiSymbolContainer.style.display = this.checked ? 'block' : 'none';
+                        
+                        // If toggling to multi-symbol mode, pre-select the default symbols
+                        if (this.checked) {
+                            const selectedSymbols = instance.querySelector('.mt5-selected-symbols');
+                            selectedSymbols.innerHTML = ''; // Clear existing
+                            
+                            // Add default symbols
+                            const defaultSymbols = ['EURUSD', 'GBPUSD', 'USDJPY', 'XAUUSD', 'AUDUSD', 'NZDUSD', 'AUDCAD', 'NZDCAD', 'EURCAD', 'USDCAD'];
+                            defaultSymbols.forEach(symbol => {
+                                addSymbolTagToInstance(selectedSymbols, symbol);
+                            });
+                        }
+                    });
+                }
+                
+                // Setup Risk Management Strategy
+                const strategySelect = instance.querySelector('.mt5-strategy');
+                if (strategySelect) {
+                    strategySelect.addEventListener('change', function() {
+                        updateStrategySettings(instance, this.value);
+                    });
+                }
+            }
+            
+            // Function to add a new MT5 instance
+            function addMT5Instance() {
+                instanceCounter++;
+                
+                // Clone the template
+                const newInstance = mt5InstanceTemplate.querySelector('.mt5-instance').cloneNode(true);
+                
+                // Set unique ID for this instance
+                newInstance.id = `mt5-instance-${instanceCounter}`;
+                
+                // Update instance number
+                newInstance.querySelector('.instance-number').textContent = instanceCounter;
+                
+                // Fix ids that contain ${id} placeholder
+                newInstance.querySelectorAll('[id$="${id}"]').forEach(element => {
+                    const baseId = element.id.replace('${id}', '');
+                    element.id = `${baseId}${instanceCounter}`;
+                    
+                    // Also update any labels targeting this element
+                    const labelSelector = `label[for="${element.id.replace(instanceCounter, '${id}')}"]`;
+                    const labels = newInstance.querySelectorAll(labelSelector);
+                    labels.forEach(label => {
+                        label.setAttribute('for', `${baseId}${instanceCounter}`);
+                    });
+                });
+                
+                // Add event listener for remove button
+                const removeBtn = newInstance.querySelector('.remove-instance-btn');
+                removeBtn.addEventListener('click', function() {
+                    if (confirm('Are you sure you want to remove this MT5 instance?')) {
+                        newInstance.remove();
+                        instanceCounter--;
+                        // Update instance numbers
+                        updateInstanceNumbers();
+                    }
+                });
+
+                // Add event listener for instance connect button
+                const connectBtn = newInstance.querySelector('.mt5-connect-btn');
+                connectBtn.addEventListener('click', function() {
+                    const instanceNumber = parseInt(newInstance.querySelector('.instance-number').textContent);
+                    
+                    // If button shows "Connected", then disconnect instead
+                    if (connectBtn.textContent === 'Connected') {
+                        disconnectSingleInstance(instanceNumber, connectBtn);
+                        return;
+                    } else {
+                        connectSingleInstance(newInstance, instanceNumber);
+                    }
+                });
+
+                // Add multi-symbol functionality
+                const multiSymbolEnabled = newInstance.querySelector('.mt5-multi-symbol-enabled');
+                const singleSymbolContainer = newInstance.querySelector('.mt5-single-symbol-container');
+                const multiSymbolContainer = newInstance.querySelector('.mt5-multi-symbol-container');
+                const selectedSymbols = newInstance.querySelector('.mt5-selected-symbols');
+                const symbolInput = newInstance.querySelector('.mt5-symbol-input');
+                const addSymbolBtn = newInstance.querySelector('.mt5-add-symbol-btn');
+                const commonSymbols = newInstance.querySelectorAll('.mt5-common-symbols .common-symbol');
+
+                // Toggle between single and multi-symbol modes
+                multiSymbolEnabled.addEventListener('change', function() {
+                    if(this.checked) {
+                        singleSymbolContainer.style.display = 'none';
+                        multiSymbolContainer.style.display = 'block';
+                        // Add the current symbol to the list
+                        const currentSymbol = newInstance.querySelector('.mt5-symbol').value;
+                        if(currentSymbol && !symbolExistsInInstance(selectedSymbols, currentSymbol)) {
+                            addSymbolTagToInstance(selectedSymbols, currentSymbol);
+                        }
+                        
+                        // Also add default symbols if none exist
+                        if (selectedSymbols.children.length <= 1) {
+                            const defaultSymbols = ['EURUSD', 'GBPUSD', 'USDJPY', 'XAUUSD', 'AUDUSD', 'NZDUSD', 'AUDCAD', 'NZDCAD', 'EURCAD', 'USDCAD'];
+                            defaultSymbols.forEach(symbol => {
+                                if (symbol !== currentSymbol && !symbolExistsInInstance(selectedSymbols, symbol)) {
+                                    addSymbolTagToInstance(selectedSymbols, symbol);
+                                }
+                            });
+                        }
+                    } else {
+                        singleSymbolContainer.style.display = 'block';
+                        multiSymbolContainer.style.display = 'none';
+                    }
+                });
+
+                // Add symbol when button is clicked
+                addSymbolBtn.addEventListener('click', function() {
+                    const symbol = symbolInput.value.trim().toUpperCase();
+                    if(symbol && !symbolExistsInInstance(selectedSymbols, symbol)) {
+                        addSymbolTagToInstance(selectedSymbols, symbol);
+                        symbolInput.value = '';
+                    }
+                });
+
+                // Add symbol when Enter is pressed
+                symbolInput.addEventListener('keypress', function(e) {
+                    if(e.key === 'Enter') {
+                        addSymbolBtn.click();
+                        e.preventDefault();
+                    }
+                });
+
+                // Add common symbols when clicked
+                commonSymbols.forEach(element => {
+                    element.addEventListener('click', function() {
+                        const symbol = this.getAttribute('data-symbol');
+                        if(!symbolExistsInInstance(selectedSymbols, symbol)) {
+                            addSymbolTagToInstance(selectedSymbols, symbol);
+                        }
+                    });
+                });
+                
+                // Setup High Impact News toggle
+                const hinToggle = newInstance.querySelector('.hin-toggle');
+                const hinSettings = newInstance.querySelector('.hin-settings');
+                if (hinToggle && hinSettings) {
+                    hinToggle.addEventListener('change', function() {
+                        hinSettings.style.display = this.checked ? 'block' : 'none';
+                    });
+                }
+                
+                // Setup Prop Firm Mode toggle
+                const propFirmToggle = newInstance.querySelector('.pfm-toggle');
+                const propFirmSettings = newInstance.querySelector('.pfm-settings');
+                if (propFirmToggle && propFirmSettings) {
+                    propFirmToggle.addEventListener('change', function() {
+                        propFirmSettings.style.display = this.checked ? 'block' : 'none';
+                    });
+                }
+                
+                // Setup indicator upload functionality
+                setupIndicatorUpload(newInstance, instanceCounter);
+                
+                // Add event listener for strategy selection
+                const strategySelect = newInstance.querySelector('.mt5-strategy');
+                strategySelect.addEventListener('change', function() {
+                    updateStrategySettings(newInstance, this.value);
+                });
+                
+                // Initialize strategy settings based on default selection
+                updateStrategySettings(newInstance, strategySelect.value);
+                
+                // Add the new instance to the container
+                mt5InstancesContainer.appendChild(newInstance);
+                
+                // If we've reached the maximum, disable the add button
+                if (instanceCounter >= MAX_INSTANCES) {
+                    addInstanceBtn.disabled = true;
+                }
+                
+                // Update the remove button visibility (hide for first instance if only one exists)
+                updateRemoveButtonVisibility();
+                
+                return newInstance;
+            }
+
+            // Function to check if a symbol exists in an instance
+            function symbolExistsInInstance(selectedSymbols, symbol) {
+                let exists = false;
+                selectedSymbols.querySelectorAll('.symbol-tag').forEach(tag => {
+                    if(tag.textContent.replace('×', '').trim() === symbol) {
+                        exists = true;
+                    }
+                });
+                return exists;
+            }
+
+            // Function to add a symbol tag to an instance
+            function addSymbolTagToInstance(selectedSymbols, symbol) {
+                const tag = document.createElement('div');
+                tag.className = 'symbol-tag';
+                tag.textContent = symbol;
+                
+                const deleteBtn = document.createElement('span');
+                deleteBtn.className = 'symbol-delete';
+                deleteBtn.textContent = '×';
+                
+                deleteBtn.addEventListener('click', function() {
+                    tag.remove();
+                });
+                
+                tag.appendChild(deleteBtn);
+                selectedSymbols.appendChild(tag);
+            }
+
+            // Function to update instance numbers
+            function updateInstanceNumbers() {
+                const instances = mt5InstancesContainer.querySelectorAll('.mt5-instance');
+                instances.forEach((instance, index) => {
+                    instance.querySelector('.instance-number').textContent = index + 1;
+                });
+                
+                // Re-enable add button if below max
+                if (instanceCounter < MAX_INSTANCES) {
+                    addInstanceBtn.disabled = false;
+                }
+                
+                // Update remove button visibility
+                updateRemoveButtonVisibility();
+            }
+            
+            // Function to update remove button visibility
+            function updateRemoveButtonVisibility() {
+                const instances = mt5InstancesContainer.querySelectorAll('.mt5-instance');
+                if (instances.length === 1) {
+                    // Hide remove button for the sole instance
+                    instances[0].querySelector('.remove-instance-btn').style.display = 'none';
+                } else {
+                    // Show remove buttons for all instances
+                    instances.forEach(instance => {
+                        instance.querySelector('.remove-instance-btn').style.display = 'block';
+                    });
+                }
+            }
+            
+            // Function to show status messages
+            function showStatusMessage(type, message) {
+                const statusMessage = document.getElementById('status-message');
+                statusMessage.className = `alert alert-${type === 'error' ? 'danger' : 'success'}`;
+                statusMessage.textContent = message;
+                statusMessage.style.display = 'block';
+                
+                // Hide after 5 seconds
+                setTimeout(() => {
+                    statusMessage.style.display = 'none';
+                }, 5000);
+            }
+
+            // Function to connect a single MT5 instance
+            function connectSingleInstance(instanceElement, instanceNumber) {
+                // Check if instance is enabled
+                if (!instanceElement.querySelector('.mt5-instance-enabled').checked) {
+                    showStatusMessage('error', 'Please enable this MT5 instance first.');
+                    return;
+                }
+                
+                const multiSymbolEnabled = instanceElement.querySelector('.mt5-multi-symbol-enabled').checked;
+                let symbols = [];
+                
+                if (multiSymbolEnabled) {
+                    // Get all selected symbols from the multi-symbol container
+                    instanceElement.querySelectorAll('.mt5-selected-symbols .symbol-tag').forEach(tag => {
+                        symbols.push(tag.textContent.replace('×', '').trim());
+                    });
+                } else {
+                    // Get single symbol
+                    symbols = [instanceElement.querySelector('.mt5-symbol').value];
+                }
+                
+                if (symbols.length === 0) {
+                    showStatusMessage('error', `Please add at least one symbol for MT5 Instance ${instanceNumber}`);
+                    return;
+                }
+                
+                const strategy = instanceElement.querySelector('.mt5-strategy').value;
+                
+                // Create base configuration
+                const instanceConfig = {
+                    instance_id: instanceNumber,
+                    login: instanceElement.querySelector('.mt5-login').value,
+                    password: instanceElement.querySelector('.mt5-password').value,
+                    server: instanceElement.querySelector('.mt5-server').value,
+                    symbols: symbols,
+                    timeframe: instanceElement.querySelector('.mt5-timeframe').value,
+                    lot_size: parseFloat(instanceElement.querySelector('.mt5-lot-size').value),
+                    sl_points: parseInt(instanceElement.querySelector('.mt5-sl').value),
+                    tp_points: parseInt(instanceElement.querySelector('.mt5-tp').value),
+                    strategy: strategy,
+                    trade_direction: instanceElement.querySelector('.mt5-trade-direction').value,
+                    multi_symbol: multiSymbolEnabled,
+                    max_drawdown: parseFloat(instanceElement.querySelector('.mt5-max-drawdown').value),
+                    weekend_closing: instanceElement.querySelector('.mt5-weekend-closing').checked,
+                    selected_indicator: instanceElement.querySelector('.mt5-indicator-select').value,
+                    use_active_account: isOnlySingleInstanceEnabled(),
+                    high_impact_news: instanceElement.querySelector('.hin-toggle').checked,
+                    prop_firm_mode: instanceElement.querySelector('.pfm-toggle').checked
+                };
+                
+                // Add High Impact News settings if enabled
+                if (instanceConfig.high_impact_news) {
+                    instanceConfig.news_duration = parseInt(instanceElement.querySelector('.news-duration').value);
+                    instanceConfig.news_stop_points = parseInt(instanceElement.querySelector('.news-stop-points').value);
+                }
+                
+                // Add Prop Firm Mode settings if enabled
+                if (instanceConfig.prop_firm_mode) {
+                    instanceConfig.trading_start_time = instanceElement.querySelector('.trading-start-time').value;
+                    instanceConfig.trading_end_time = instanceElement.querySelector('.trading-end-time').value;
+                    instanceConfig.randomness_level = instanceElement.querySelector('.randomness-level').value;
+                }
+                
+                // Add strategy-specific settings
+                switch(strategy) {
+                    case 'exit_signal_or_max_tp':
+                        instanceConfig.reentry_count = parseInt(instanceElement.querySelector('.mt5-reentry-count').value);
+                        break;
+                    case 'progressive':
+                        instanceConfig.positions_per_setup = parseInt(instanceElement.querySelector('.mt5-positions-per-setup').value);
+                        break;
+                    case 'drawdown':
+                        instanceConfig.max_layers = parseInt(instanceElement.querySelector('.mt5-max-layers').value);
+                        instanceConfig.tp_per_position = parseInt(instanceElement.querySelector('.mt5-tp-per-position').value);
+                        break;
+                    case 'trailing_stop':
+                        instanceConfig.checkpoints = parseInt(instanceElement.querySelector('.mt5-checkpoints').value);
+                        break;
+                    case 'hybrid_progressive_drawdown':
+                        instanceConfig.positions_per_setup = parseInt(instanceElement.querySelector('.mt5-hybrid-positions-per-setup').value);
+                        instanceConfig.max_layers = parseInt(instanceElement.querySelector('.mt5-hybrid-max-layers').value);
+                        instanceConfig.tp_per_position = parseInt(instanceElement.querySelector('.mt5-hybrid-tp-per-position').value);
+                        break;
+                    case 'hybrid_trailing_drawdown':
+                        instanceConfig.checkpoints = parseInt(instanceElement.querySelector('.mt5-trailing-checkpoints').value);
+                        instanceConfig.max_layers = parseInt(instanceElement.querySelector('.mt5-trailing-max-layers').value);
+                        instanceConfig.tp_per_position = parseInt(instanceElement.querySelector('.mt5-trailing-tp-per-position').value);
+                        break;
+                }
+                
+                // Change button text to indicate connecting status
+                const connectBtn = instanceElement.querySelector('.mt5-connect-btn');
+                const originalText = connectBtn.textContent;
+                connectBtn.textContent = 'Connecting...';
+                connectBtn.disabled = true;
+                
+                // Start the single MT5 instance
+                fetch('/start_instance', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    body: JSON.stringify(instanceConfig)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                    if (data.status === 'success') {
+                        connectBtn.textContent = 'Connected';
+                        connectBtn.classList.remove('btn-primary');
+                        connectBtn.classList.add('btn-success');
+                        showStatusMessage('success', `MT5 Instance ${instanceNumber} connected successfully!`);
+                        } else {
+                        showStatusMessage('error', data.message || 'Failed to connect MT5 instance');
+                        connectBtn.textContent = originalText;
+                        connectBtn.disabled = false;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    showStatusMessage('error', 'Failed to connect MT5 instance. See console for details.');
+                    connectBtn.textContent = originalText;
+                    connectBtn.disabled = false;
+                });
+            }
+
+            // Function to disconnect a single MT5 instance
+            function disconnectSingleInstance(instanceNumber, buttonElement) {
+                if (confirm(`Are you sure you want to disconnect MT5 Instance ${instanceNumber}?`)) {
+                    // Change button text to indicate status
+                    const originalText = buttonElement.textContent;
+                    buttonElement.textContent = 'Disconnecting...';
+                    buttonElement.disabled = true;
+                    
+                    fetch('/stop_instance', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ instance_id: instanceNumber })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            buttonElement.textContent = 'Connect';
+                            buttonElement.classList.remove('btn-success');
+                            buttonElement.classList.add('btn-primary');
+                            buttonElement.disabled = false;
+                            showStatusMessage('success', `MT5 Instance ${instanceNumber} disconnected successfully!`);
+                        } else {
+                            showStatusMessage('error', data.message || 'Failed to disconnect MT5 instance');
+                            buttonElement.textContent = originalText;
+                            buttonElement.disabled = false;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showStatusMessage('error', 'Failed to disconnect MT5 instance. See console for details.');
+                        buttonElement.textContent = originalText;
+                        buttonElement.disabled = false;
+                    });
+                }
+            }
+
+            // Function to check if only a single instance is enabled
+            function isOnlySingleInstanceEnabled() {
+                const enabledInstances = document.querySelectorAll('.mt5-instance-enabled:checked');
+                return enabledInstances.length === 1;
+            }
+            
+            // Add event listeners for indicator upload buttons
+            function setupIndicatorUpload(instanceElement, instanceNumber) {
+                const uploadBtn = instanceElement.querySelector('.mt5-upload-indicator-btn');
+                const fileInput = instanceElement.querySelector('.mt5-indicator-file');
+                const indicatorSelect = instanceElement.querySelector('.mt5-indicator-select');
+                
+                uploadBtn.addEventListener('click', function() {
+                    if (!fileInput.files.length) {
+                        showStatusMessage('error', 'Please select a Pine Script file to upload');
+                        return;
+                    }
+                    
+                    const file = fileInput.files[0];
+                    const formData = new FormData();
+                    formData.append('indicator_file', file);
+                    formData.append('instance_id', instanceNumber);
+                    
+                    fetch('/upload_indicator', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            showStatusMessage('success', data.message);
+                            // Reload indicators for this instance
+                            loadIndicators(instanceElement, instanceNumber);
+                        } else {
+                            showStatusMessage('error', data.message || 'Failed to upload indicator');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showStatusMessage('error', 'Network error while uploading indicator');
+                    });
+                });
+                
+                // Initial load of indicators
+                loadIndicators(instanceElement, instanceNumber);
+            }
+            
+            // Function to load indicators for a specific instance
+            function loadIndicators(instanceElement, instanceNumber) {
+                fetch(`/indicators?instance_id=${instanceNumber}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const indicatorSelect = instanceElement.querySelector('.mt5-indicator-select');
+                        
+                        // Clear existing options except the default
+                        while (indicatorSelect.options.length > 1) {
+                            indicatorSelect.remove(1);
+                        }
+                        
+                        // Add indicators from the server
+                        data.indicators.forEach(indicator => {
+                            const option = document.createElement('option');
+                            option.value = indicator;
+                            option.textContent = indicator;
+                            
+                            // Set HWR.pine as selected if available
+                            if (indicator === 'HWR.pine') {
+                                option.selected = true;
+                                // Deselect the default option
+                                indicatorSelect.options[0].selected = false;
+                            }
+                            
+                            indicatorSelect.appendChild(option);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error loading indicators:', error);
+                    });
+            }
+
+            // Function to update strategy-specific settings visibility
+            function updateStrategySettings(instanceElement, strategy) {
+                // Hide all strategy-specific settings
+                const settingsContainers = instanceElement.querySelectorAll('.strategy-specific-settings > div');
+                settingsContainers.forEach(container => {
+                    container.style.display = 'none';
+                });
+                
+                // Show relevant settings based on selected strategy
+                switch(strategy) {
+                    case 'exit_signal_or_max_tp':
+                        instanceElement.querySelector('.exit-signal-settings').style.display = 'block';
+                        break;
+                    case 'progressive':
+                        instanceElement.querySelector('.progressive-settings').style.display = 'block';
+                        break;
+                    case 'drawdown':
+                        instanceElement.querySelector('.drawdown-settings').style.display = 'block';
+                        break;
+                    case 'trailing_stop':
+                        instanceElement.querySelector('.trailing-settings').style.display = 'block';
+                        break;
+                    case 'hybrid_progressive_drawdown':
+                        instanceElement.querySelector('.hybrid-progressive-drawdown-settings').style.display = 'block';
+                        break;
+                    case 'hybrid_trailing_drawdown':
+                        instanceElement.querySelector('.trailing-drawdown-settings').style.display = 'block';
+                        break;
+                }
+            }
+
+            // Fetch High Impact News data
+            function fetchHighImpactNews() {
+                fetch('/get_high_impact_news')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            console.log('Fetched High Impact News:', data.news);
+                            // Here you would update the UI to show upcoming news
+                        } else {
+                            console.error('Failed to fetch news:', data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching news:', error);
+                    });
+            }
+
+            // Initial fetch of High Impact News
+            fetchHighImpactNews();
+            
+            // Set up periodic refresh of news data (every 30 minutes)
+            setInterval(fetchHighImpactNews, 30 * 60 * 1000);
+        });
+    </script>
+</body>
+</html> 

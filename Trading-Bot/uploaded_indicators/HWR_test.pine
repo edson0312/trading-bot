@@ -1,0 +1,11 @@
+
+//@version=5
+indicator("High Wave Ratio (HWR)", shorttitle="HWR")
+length = input.int(21, "Length")
+tr = math.max(high - low, math.abs(high - close[1]), math.abs(low - close[1]))
+atr = ta.sma(tr, length)
+wave_height = high - low
+hwr = wave_height / atr
+buy = hwr < 0.5 and close > open
+sell = hwr < 0.5 and close < open
+        
