@@ -1,8 +1,0 @@
-
-//@version=5
-indicator("Generic RSI Test", shorttitle="GenRSI")
-length = input.int(14, "Length")
-rsi = ta.rsi(close, length)
-buy = rsi < 30
-sell = rsi > 70
-        
