@@ -1,0 +1,46 @@
+//@version=6
+strategy("Bollinger Bands Strategy", overlay=true, initial_capital=10000, currency=currency.USD, default_qty_type=strategy.percent_of_equity, default_qty_value=10)
+
+// === Input Parameters ===
+length = input.int(20, title="Bollinger Bands Length")
+mult   = input.float(2.0, title="Bollinger Bands Multiplier", step=0.1)
+src    = close
+
+// === Bollinger Bands Calculation ===
+basis = ta.sma(src, length)
+dev   = mult * ta.stdev(src, length)
+upper = basis + dev
+lower = basis - dev
+
+// Plot the bands on the chart
+plot(basis, color=color.blue, title="Basis")
+plot(upper, color=color.red, title="Upper Band")
+plot(lower, color=color.green, title="Lower Band")
+
+// === Strategy Logic ===
+// Entry Conditions:
+// - Buy when the close crosses above the lower band.
+// - Sell (short entry) when the close crosses below the upper band.
+buySignal  = ta.crossover(src, lower)
+sellSignal = ta.crossunder(src, upper)
+
+// Exit Conditions:
+// - For long positions, exit when the price crosses below the basis.
+// - For short positions, exit when the price crosses above the basis.
+exitLong  = ta.crossunder(src, basis)
+exitShort = ta.crossover(src, basis)
+
+// Execute orders based on signals
+if buySignal
+    strategy.entry("Long", strategy.long)
+if sellSignal
+    strategy.entry("Short", strategy.short)
+
+if exitLong
+    strategy.close("Long")
+if exitShort
+    strategy.close("Short")
+
+// === Plot Entry/Exit Signals on Chart ===
+plotshape(buySignal,  title="Buy Signal",  location=location.belowbar, color=color.green, style=shape.triangleup,   size=size.small)
+plotshape(sellSignal, title="Sell Signal", location=location.abovebar, color=color.red,   style=shape.triangledown, size=size.small)
